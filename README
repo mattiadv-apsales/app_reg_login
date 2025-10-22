@@ -1,0 +1,22 @@
+How to use this app:
+
+At first you need to install python on your system.
+
+At Second you need to install this three library's:
+- os
+- json
+- tkinter
+
+Json and Os library is already install when you install python, for TkInter is different, if you are on windows or mac is usually installed when you install python, but for linux system you have to use this command:
+- sudo apt-get install python3-tk
+
+After you install all of this things, you have to clone this directory in your pc with this command:
+- git clone https://github.com/mattiadv-apsales/app_reg_login.git
+
+After you clone this directory on your pc, you have to open the terminal on the directory you have saved (APP_REG_LOGIN)
+and for run the program you only have to use this command:
+- python3 main.py
+or
+- python main.py
+
+ENJOY IT! :)
