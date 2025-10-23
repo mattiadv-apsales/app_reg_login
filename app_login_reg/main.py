@@ -21,6 +21,7 @@ def login_user(email, password, login):
 
     if user == True and p == True:
         label_message_login.config(text=f"Accesso effettuato come {email}", fg="green")
+        applicazione(login, email)
     elif user == True and p == False:
         label_message_login.config(text=f"Password errata per questo account!", fg="red")
     else:
@@ -66,6 +67,7 @@ class Users:
         self.surname = surname or ""
         self.email = email or ""
         self.password = password or ""
+        self.sub_users = []
 
         self.reload_all_users()
         
@@ -73,7 +75,8 @@ class Users:
             "name": self.name,
             "surname": self.surname,
             "email": self.email,
-            "password": self.password
+            "password": self.password,
+            "sub_users": []
         }
 
         if not any(u["email"] == self.email for u in Users._users):
@@ -83,7 +86,7 @@ class Users:
 
     def save_users_on_file(self):
         with open("users.json", "w") as file:
-            json.dump(Users._users, file, indent=4)
+            json.dump(Users._users, file, indent=5)
 
     def reload_all_users(self):
         Users._users = []
@@ -113,6 +116,7 @@ def crea_utente(nome, cognome, email, password, window, input_name, input_surnam
             input_surname.delete(0, tk.END)
             input_email.delete(0, tk.END)
             input_password.delete(0, tk.END)
+            applicazione(window, email)
         elif nome == "":
             label_message.config(text="Si prega di inserire il nome!", fg="red")
             label_message.pack()
@@ -185,5 +189,87 @@ def registrazione():
     bottone_login.pack()
 
     window.mainloop()
+
+def applicazione(window, email):
+    app = tk.Tk()
+    app.geometry("500x500")
+    app.title("Applicaton")
+
+    window.destroy()
+
+    # obiettivo, salvare persone random collegata alla persona che ha fatto l'accesso
+
+    tk.Label(app, text=f"Bentornato {email}", pady=40).pack()
+    tk.Label(app, text="Aggiungi ora utenti alla tua lista").pack()
+    tk.Label(app, text="Inserisci il nome").pack()
+    input_name = tk.Entry(app)
+    input_name.pack()
+    tk.Label(app, text="Inserisci il cognome").pack()
+    input_surname = tk.Entry(app)
+    input_surname.pack()
+    tk.Button(app, text="Aggiungi utente alla lista", command=lambda: createSubUser(input_name.get(), input_surname.get(), input_name, input_surname)).pack()
+    label_mex = tk.Label(app, text="", pady=20)
+    label_mex.pack()
+    tk.Label(app, text="I tuoi utenti sub").pack()
+    label_subusers = tk.Label(app, text="aaa")
+    label_subusers.pack()
+
+    users = []
+    logged_user = []
+
+    with open('users.json', "r") as file:
+        users.extend(json.load(file))
+    
+    for user in users:
+        if user["email"] == email:
+            logged_user = user
+
+    def caricaSub():
+        message = ""
+        for sub in logged_user["sub_users"]:
+            message += f"Utente: {sub['name']} {sub['surname']}\n"
+
+        label_subusers.config(text=message)
+
+    caricaSub()
+
+    def createSubUser(name, surname, namein, surnin):
+        try: 
+            if name != "" and surname != "":
+                namein.delete(0, tk.END)
+                surnin.delete(0, tk.END)
+                subu = {
+                    "name": name,
+                    "surname": surname
+                }
+
+                logged_user["sub_users"].append(subu)
+
+                with open("users.json", "w") as file:
+                    json.dump(users, file, indent=5)
+
+                label_mex.config(text="Sub user aggiunti senza problemi", fg="green")
+                app.after(3000, lambda: label_mex.config(text=""))
+
+                caricaSub()
+                
+            elif name == "" and surname != "":
+                label_mex.config(text="Si prega di inserire un nome", fg="red")
+                app.after(3000, lambda: label_mex.config(text=""))
+            
+            elif name != "" and surname == "":
+                label_mex.config(text="Si prega di inserire un cognome", fg="red")
+                app.after(3000, lambda: label_mex.config(text=""))
+            
+            elif name == "" and surname == "":
+                label_mex.config(text="Si prega di inserire un nome ed un cognome", fg="red")
+                app.after(3000, lambda: label_mex.config(text=""))
+
+        except:
+            label_mex.config(text="Non siamo riusciti a caricare i nuovi sub user :(", fg="red")
+            app.after(3000, lambda: label_mex.config(text=""))
+
+
+    app.mainloop()
 
 registrazione()
