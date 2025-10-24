@@ -281,7 +281,7 @@ def applicazione(window, email):
 
     def createSubUser(name, surname, scadenza, namein, surnin, scadein):
         try: 
-            if name != "" and surname != "":
+            if name != "" and surname != "" and scadenza != "":
                 namein.delete(0, tk.END)
                 surnin.delete(0, tk.END)
                 scadein.delete(0, tk.END)
@@ -302,20 +302,24 @@ def applicazione(window, email):
 
                 caricaSub()
                 
-            elif name == "" and surname != "":
-                label_mex.config(text="Si prega di inserire un nome", fg="red")
+            elif name == "":
+                label_mex.config(text="Si prega di inserire un titolo", fg="red")
                 app.after(3000, lambda: label_mex.config(text=""))
             
-            elif name != "" and surname == "":
-                label_mex.config(text="Si prega di inserire un cognome", fg="red")
+            elif surname == "":
+                label_mex.config(text="Si prega di inserire una descrizione", fg="red")
+                app.after(3000, lambda: label_mex.config(text=""))
+
+            elif scadenza == "":
+                label_mex.config(text="Si prega di inserire una scadenza", fg="red")
                 app.after(3000, lambda: label_mex.config(text=""))
             
-            elif name == "" and surname == "":
-                label_mex.config(text="Si prega di inserire un nome ed un cognome", fg="red")
+            elif name == "" and surname == "" and scadenza == "":
+                label_mex.config(text="Si prega di inserire dei dati", fg="red")
                 app.after(3000, lambda: label_mex.config(text=""))
 
         except:
-            label_mex.config(text="Non siamo riusciti a caricare i nuovi sub user :(", fg="red")
+            label_mex.config(text="Non siamo riusciti a caricare le nuove task :(", fg="red")
             app.after(3000, lambda: label_mex.config(text=""))
 
 
