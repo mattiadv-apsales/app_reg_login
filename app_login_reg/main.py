@@ -67,7 +67,7 @@ class Users:
         self.surname = surname or ""
         self.email = email or ""
         self.password = password or ""
-        self.sub_users = []
+        self.tasks = []
 
         self.reload_all_users()
         
@@ -76,7 +76,7 @@ class Users:
             "surname": self.surname,
             "email": self.email,
             "password": self.password,
-            "sub_users": []
+            "tasks": []
         }
 
         if not any(u["email"] == self.email for u in Users._users):
@@ -197,23 +197,6 @@ def applicazione(window, email):
 
     window.destroy()
 
-    # obiettivo, salvare persone random collegata alla persona che ha fatto l'accesso
-
-    tk.Label(app, text=f"Bentornato {email}", pady=40).pack()
-    tk.Label(app, text="Aggiungi ora utenti alla tua lista").pack()
-    tk.Label(app, text="Inserisci il nome").pack()
-    input_name = tk.Entry(app)
-    input_name.pack()
-    tk.Label(app, text="Inserisci il cognome").pack()
-    input_surname = tk.Entry(app)
-    input_surname.pack()
-    tk.Button(app, text="Aggiungi utente alla lista", command=lambda: createSubUser(input_name.get(), input_surname.get(), input_name, input_surname)).pack()
-    label_mex = tk.Label(app, text="", pady=20)
-    label_mex.pack()
-    tk.Label(app, text="I tuoi utenti sub").pack()
-    label_subusers = tk.Label(app, text="aaa")
-    label_subusers.pack()
-
     users = []
     logged_user = []
 
@@ -224,26 +207,92 @@ def applicazione(window, email):
         if user["email"] == email:
             logged_user = user
 
-    def caricaSub():
-        message = ""
-        for sub in logged_user["sub_users"]:
-            message += f"Utente: {sub['name']} {sub['surname']}\n"
+    # obiettivo, salvare persone random collegata alla persona che ha fatto l'accesso
 
-        label_subusers.config(text=message)
+    tk.Label(app, text=f"Bentornato {logged_user["name"]} {logged_user["surname"]}", pady=40).pack()
+    tk.Label(app, text="Aggiungi ora utenti alla tua lista").pack()
+    tk.Label(app, text="Inserisci il titolo").pack()
+    input_name = tk.Entry(app)
+    input_name.pack()
+    tk.Label(app, text="Inserisci la descrizione").pack()
+    input_surname = tk.Entry(app)
+    input_surname.pack()
+    tk.Label(app, text="Inserire la scadenza").pack()
+    input_scadenza = tk.Entry(app)
+    input_scadenza.pack()
+    tk.Button(app, text="Aggiungi task", command=lambda: createSubUser(input_name.get(), input_surname.get(), input_scadenza.get(), input_name, input_surname, input_scadenza)).pack()
+    label_mex = tk.Label(app, text="", pady=20)
+    label_mex.pack()
+    tk.Label(app, text="Le tue task").pack()
+
+    container = tk.Frame(app)
+    container.pack(fill="both", expand=True)
+
+    canvas = tk.Canvas(container)
+    canvas.pack(side="left", fill="both", expand=True)
+
+    scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+    scrollbar.pack(side="right", fill="y")
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    frame = tk.Frame(canvas)
+    canvas.create_window((0, 0), window=frame, anchor="nw")
+
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    frame.bind("<Configure>", on_frame_configure)
+
+    def caricaSub():
+        for widget in frame.winfo_children():
+            widget.destroy()
+
+        for index, sub in enumerate(logged_user["tasks"]):
+            tk.Label(frame, text=f"Task:\n{sub['titolo']}\n{sub['descrizione']}\n{sub['scadenza']}").pack()
+
+            if sub["is_checked"]:
+                tk.Button(frame, text="Deselect task", command=lambda i=index: select_deselect_task(logged_user, i)).pack()
+            else:
+                tk.Button(frame, text="Check the task", command=lambda i = index: select_deselect_task(logged_user, i)).pack()
+            
+            tk.Button(frame, text="Delete this Task", command=lambda i = index: delete_task(logged_user, i)).pack()
+            tk.Label(frame, text="-----------")
+
+    def delete_task(user, index):
+        del user["tasks"][index]
+        caricaSub()
+
+        with open("users.json", "w") as file:
+            json.dump(users, file, indent=5)
+
+    def select_deselect_task(user, index):
+        if user["tasks"][index]["is_checked"] == True:
+            user["tasks"][index]["is_checked"] = False
+        else: 
+            user["tasks"][index]["is_checked"] = True
+
+        caricaSub()
+        
+        with open("users.json", "w") as file:
+            json.dump(users, file, indent=5)
 
     caricaSub()
 
-    def createSubUser(name, surname, namein, surnin):
+    def createSubUser(name, surname, scadenza, namein, surnin, scadein):
         try: 
             if name != "" and surname != "":
                 namein.delete(0, tk.END)
                 surnin.delete(0, tk.END)
+                scadein.delete(0, tk.END)
                 subu = {
-                    "name": name,
-                    "surname": surname
+                    "titolo": name,
+                    "descrizione": surname,
+                    "scadenza": scadenza,
+                    "is_checked": False
                 }
 
-                logged_user["sub_users"].append(subu)
+                logged_user["tasks"].append(subu)
 
                 with open("users.json", "w") as file:
                     json.dump(users, file, indent=5)
